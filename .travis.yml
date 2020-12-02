@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t blimonchik/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run blimonchik/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t blimonchik/mutli-client ./client
+  - docker build -t blimonchik/mutli-nginx ./nginx
+  - docker build -t blimonchik/mutli-server ./server
+  - docker build -t blimonchik/mutli-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID"  --password-stdin
+  # take those images and push them to docker hub
+  - docker push blimonchik/mutli-client
+  - docker push blimonchik/mutli-nginx
+  - docker push blimonchik/mutli-server
+  - docker push blimonchik/mutli-worker
+
+
